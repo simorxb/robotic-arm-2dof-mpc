@@ -22,10 +22,10 @@ a1 = params(3);     % Length of link 1 (m)
 a2 = params(4);     % Length of link 2 (m)
 h = params(7);     % Height of arm base
 
-xe = a1*cos(theta1) + a2*cos(theta1 + theta2);
-ye = h + a1*sin(theta1) + a2*sin(theta1 + theta2);
+ye = a1*cos(theta1) + a2*cos(theta1 + theta2);
+ze = h + a1*sin(theta1) + a2*sin(theta1 + theta2);
 
-y = [xe; ye];
+y = [ye; ze];
 
 end
 

@@ -22,11 +22,16 @@ m1 = 0.49 + 0.59;
 m2 = 0.37 + 0.18;
 params = [m1; m2; a1; a2; kj1; kj2; lbz-rj1];
 
+% Open the model and create the parameter bus
+open([model '.slx']);
+clear paramsBusObject;
+createParameterBus(nlobj,[model '/Nonlinear MPC Controller'],'paramsBusObject',{params});
+
 % Controller sample time (s)
 nlobj.Ts = 0.1;
 
 % Prediction and control horizons
-nlobj.PredictionHorizon = 15;
+nlobj.PredictionHorizon = 10;
 nlobj.ControlHorizon = 4;
 
 % Assign state and output functions
@@ -45,10 +50,10 @@ nlobj.ManipulatedVariables(2).ScaleFactor = 2;
 nlobj.OutputVariables(1).ScaleFactor = 1; % End-effector position x (m)
 nlobj.OutputVariables(2).ScaleFactor = 1; % End-effector position y (m)
 
-% Weights for cost function (tracking end-effector, penalize large torques & rate)
+% Weights for cost function (tracking end-effector, penalize torque rates)
 nlobj.Weights.OutputVariables = [1 1];
 nlobj.Weights.ManipulatedVariables = [0.0 0.0];
-nlobj.Weights.ManipulatedVariablesRate = [0.01 0.01];
+nlobj.Weights.ManipulatedVariablesRate = [0.05 0.05];
 
 % Initial conditions for validation
 x0 = [0 0 0 0];        % [theta1; omega1; theta2; omega2]
@@ -64,9 +69,9 @@ u0 = [0 0];               % [tau1; tau2]
 % Reference: end-effector position (x, y)
 theta1_ref = pi/4;
 theta2_ref = pi/2;
-xe_ref = a1*cos(theta1_ref) + a2*cos(theta1_ref + theta2_ref);
-ye_ref = lbz - rj1 + a1*sin(theta1_ref) + a2*sin(theta1_ref + theta2_ref);
-ref = [xe_ref ye_ref];
+ye_ref = a1*cos(theta1_ref) + a2*cos(theta1_ref + theta2_ref);
+ze_ref = lbz - rj1 + a1*sin(theta1_ref) + a2*sin(theta1_ref + theta2_ref);
+ref = [ye_ref ze_ref];
 
 Tend = 1;
 steps = round(Tend/nlobj.Ts);
