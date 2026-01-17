@@ -61,12 +61,12 @@ G = [m1*g*ac1*cos(theta1) + m2*g*(a1*cos(theta1) + ac2*cos(theta1 + theta2));
      m2*g*ac2*cos(theta1 + theta2)];
 
 % Viscous friction (2x1)
-F = [kj1*omega1; kj2*omega2];
+f = [kj1*omega1; kj2*omega2];
 
 tau = [tau1; tau2];
 
 % Joint angular accelerations (domega)
-domega = M \ (tau - C * [omega1; omega2] - G - F);
+domega = M \ (tau - C * [omega1; omega2] - G - f);
 
 % Assemble state derivative vector
 dxdt = [omega1; domega(1); omega2; domega(2)];
