@@ -1,2 +1,4 @@
 # robotic-arm-2dof-mpc
-Nonlinear MPC control of a 2dof robotic arm
+This project implements nonlinear model predictive control (NMPC) for a planar 2-DOF robotic arm in MATLAB/Simulink. The controller is built around custom state and output functions, and it is configured to track an end-effector position reference while respecting joint torque limits and penalizing rapid torque changes. The overall flow is: define model parameters, build the NMPC object, validate the model functions, simulate closed-loop motion, and visualize the results.
+
+The repository includes initialization scripts for physical parameters and controller configuration, along with a simulation loop that drives the plant using the NMPC move function. Outputs and plots focus on end-effector tracking performance, joint angle evolution, and commanded torques, plus the end-effector trajectory in the workspace. Simulink models are provided to support the nonlinear plant and controller setup, and the MATLAB scripts tie the model, controller, and plotting together for quick iteration on tuning and references.
