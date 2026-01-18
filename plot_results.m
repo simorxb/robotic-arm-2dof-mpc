@@ -21,6 +21,7 @@ stairs(ye_ref_log.Time, ye_ref_log.Data, 'r--', 'LineWidth', 2);
 hold off;
 grid on;
 legend('y', 'y_{ref}', 'Location', 'best');
+xlabel('Time (s)');
 ylabel('y (m)');
 title('End-Effector y');
 
@@ -32,6 +33,7 @@ stairs(ze_ref_log.Time, ze_ref_log.Data, 'r--', 'LineWidth', 2);
 hold off;
 grid on;
 legend('z', 'z_{ref}', 'Location', 'best');
+xlabel('Time (s)');
 ylabel('z (m)');
 title('End-Effector z');
 
@@ -43,6 +45,7 @@ plot(theta2_log.Time, theta2_log.Data * 180/pi, 'g-', 'LineWidth', 2);
 hold off;
 grid on;
 legend('\theta_1', '\theta_2', 'Location', 'best');
+xlabel('Time (s)');
 ylabel('Angle (deg)');
 title('Joint Angles');
 
@@ -54,6 +57,7 @@ plot(omega2_log.Time, omega2_log.Data, 'g-', 'LineWidth', 2);
 hold off;
 grid on;
 legend('\omega_1', '\omega_2', 'Location', 'best');
+xlabel('Time (s)');
 ylabel('Angular Velocity (rad/s)');
 title('Joint Velocities');
 
@@ -65,6 +69,7 @@ stairs(tau2_log.Time, tau2_log.Data, 'g-', 'LineWidth', 2);
 hold off;
 grid on;
 legend('\tau_1', '\tau_2', 'Location', 'best');
+xlabel('Time (s)');
 ylabel('Torque (N*m)');
 xlabel('Time (s)');
 title('Joint Torques');

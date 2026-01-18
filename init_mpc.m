@@ -111,6 +111,7 @@ stairs(time_log, ref(1)*ones(size(y_eff)), 'r--', 'LineWidth', 2);
 hold off;
 grid on;
 legend('y', 'y_{ref}');
+xlabel('Time (s)');
 ylabel('Position (m)');
 title('End-Effector y');
 
@@ -121,6 +122,7 @@ stairs(time_log, ref(2)*ones(size(z_eff)), 'r--', 'LineWidth', 2);
 hold off;
 grid on;
 legend('z', 'z_{ref}');
+xlabel('Time (s)');
 ylabel('Position (m)');
 title('End-Effector z');
 
@@ -131,6 +133,7 @@ stairs(time_log, theta2*180/pi, 'g-', 'LineWidth', 2);
 hold off;
 grid on;
 legend('\theta_1', '\theta_2');
+xlabel('Time (s)');
 ylabel('Angle (deg)');
 title('Joint Angles');
 
