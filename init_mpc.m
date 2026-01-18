@@ -18,9 +18,7 @@ nlobj = nlmpc(nx, ny, 'MV', 1:nmv);
 nlobj.Model.NumberOfParameters = 1;
 % Physical parameters vector: [m1; m2; a1; a2; kj1; kj2]
 % Values assumed initialized elsewhere
-m1 = 0.49 + 0.59;
-m2 = 0.37 + 0.18;
-params = [m1; m2; a1; a2; kj1; kj2; lbz-rj1];
+params = [m1; m2; a1; a2; kj1; kj2; lbz-rj1; ac1; ac2];
 
 % Open the model and create the parameter bus
 open([model '.slx']);
@@ -56,21 +54,19 @@ nlobj.Weights.ManipulatedVariables = [0.0 0.0];
 nlobj.Weights.ManipulatedVariablesRate = [0.05 0.05];
 
 % Initial conditions for validation
-x0 = [0 0 0 0];        % [theta1; omega1; theta2; omega2]
+x0 = [theta1_0; 0; theta2_0; 0];        % [theta1; omega1; theta2; omega2]
 u0 = [0 0];            % [tau1; tau2]
 validateFcns(nlobj, x0, u0, [], {params});
 
 %% Simulate MPC for Robotic Arm
 
 % Initial states and references for the robotic arm
-x0 = [0 0 0 0];           % [theta1; omega1; theta2; omega2]
-u0 = [0 0];               % [tau1; tau2]
+x = [theta1_0; 0; theta2_0; 0];           % [theta1; omega1; theta2; omega2]
+u = [0 0];               % [tau1; tau2]
  
 % Reference: end-effector position (x, y)
-theta1_ref = pi/4;
-theta2_ref = pi/2;
-ye_ref = a1*cos(theta1_ref) + a2*cos(theta1_ref + theta2_ref);
-ze_ref = lbz - rj1 + a1*sin(theta1_ref) + a2*sin(theta1_ref + theta2_ref);
+ye_ref = 0.2;
+ze_ref = 0.3;
 ref = [ye_ref ze_ref];
 
 Tend = 1;
@@ -84,13 +80,13 @@ u_log = zeros(steps, nu);
 time_log = zeros(steps, 1);
 
 for i = 1:steps
-    x_log(i,:) = x0;
+    x_log(i,:) = x;
     time_log(i) = (i-1)*nlobj.Ts;
-    [mv,nloptions] = nlmpcmove(nlobj, x0, u0, ref, [], nloptions);
+    [mv,nloptions] = nlmpcmove(nlobj, x, u, ref, [], nloptions);
     u_log(i,:) = mv';
     
-    x0 = nloptions.X0(1,:);
-    u0 = mv';
+    x = nloptions.X0(1,:);
+    u = mv';
 
     % Print percentage of completion
     percent_done = (i / steps) * 100;
@@ -100,8 +96,8 @@ end
 %% Plot results
 theta1 = x_log(:,1);
 theta2 = x_log(:,3);
-x_eff = a1*cos(theta1) + a2*cos(theta1 + theta2);
-y_eff = lbz - rj1 + a1*sin(theta1) + a2*sin(theta1 + theta2);
+y_eff = a1*cos(theta1) + a2*cos(theta1 + theta2);
+z_eff = lbz - rj1 + a1*sin(theta1) + a2*sin(theta1 + theta2);
 
 tau1 = u_log(:,1);
 tau2 = u_log(:,2);
@@ -110,23 +106,23 @@ figure;
 
 subplot(3,2,1)
 hold on;
-stairs(time_log, x_eff, 'b-', 'LineWidth', 2);
-stairs(time_log, ref(1)*ones(size(x_eff)), 'r--', 'LineWidth', 2);
-hold off;
-grid on;
-legend('x', 'x_{ref}');
-ylabel('Position (m)');
-title('End-Effector x');
-
-subplot(3,2,2)
-hold on;
-stairs(time_log, y_eff, 'g-', 'LineWidth', 2);
-stairs(time_log, ref(2)*ones(size(y_eff)), 'm--', 'LineWidth', 2);
+stairs(time_log, y_eff, 'b-', 'LineWidth', 2);
+stairs(time_log, ref(1)*ones(size(y_eff)), 'r--', 'LineWidth', 2);
 hold off;
 grid on;
 legend('y', 'y_{ref}');
 ylabel('Position (m)');
 title('End-Effector y');
+
+subplot(3,2,2)
+hold on;
+stairs(time_log, z_eff, 'b-', 'LineWidth', 2);
+stairs(time_log, ref(2)*ones(size(z_eff)), 'r--', 'LineWidth', 2);
+hold off;
+grid on;
+legend('z', 'z_{ref}');
+ylabel('Position (m)');
+title('End-Effector z');
 
 subplot(3,2,3)
 hold on;
@@ -139,15 +135,15 @@ ylabel('Angle (deg)');
 title('Joint Angles');
 
 subplot(3,2,4)
-plot(x_eff, y_eff, 'k-', 'LineWidth', 2);
+plot(y_eff, z_eff, 'k-', 'LineWidth', 2);
 hold on;
-plot(ref(1), ref(2), 'ro', 'LineWidth', 2);
+plot(ye_ref, ze_ref, 'ro', 'LineWidth', 2);
 hold off;
 grid on;
 axis equal;
 legend('Trajectory', 'Target');
-xlabel('x (m)');
-ylabel('y (m)');
+xlabel('y (m)');
+ylabel('z (m)');
 title('End-Effector Trajectory');
 
 subplot(3,2,[5 6])
@@ -161,4 +157,4 @@ ylabel('Torque (N*m)');
 xlabel('Time (s)');
 title('Joint Torques');
 
-sgtitle('Robotic Arm MPC Simulation');
+sgtitle('Robotic Arm MPC - Design');

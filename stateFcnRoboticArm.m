@@ -18,6 +18,8 @@ function dxdt = stateFcnRoboticArm(x, u, params)
 %            a2   = Length of link 2 (m)
 %            kj1  = Joint 1 viscous friction (N*m*s/rad)
 %            kj2  = Joint 2 viscous friction (N*m*s/rad)
+%            ac1  = Center of mass position, link 1 (m)
+%            ac2  = Center of mass position, link 2 (m)
 % Output:
 %   dxdt   - Time derivative of state vector [omega1; domega1; omega2; domega2]
 
@@ -35,12 +37,12 @@ a1 = params(3);     % Length of link 1 (m)
 a2 = params(4);     % Length of link 2 (m)
 kj1 = params(5);    % Viscous friction at joint 1 (N*m*s/rad)
 kj2 = params(6);    % Viscous friction at joint 2 (N*m*s/rad)
+ac1 = params(8);    % Center of mass position, link 1 (m)
+ac2 = params(9);    % Center of mass position, link 2 (m)
 
 I1 = m1 * a1^2 / 12;       % Moment of inertia, link 1 (kg*m^2)
 I2 = m2 * a2^2 / 12;       % Moment of inertia, link 2 (kg*m^2)
 
-ac1 = a1 / 2;              % Center of mass position, link 1 (m)
-ac2 = a2 / 2;              % Center of mass position, link 2 (m)
 g = 9.81;                  % Gravity (m/s^2)
 
 C1 = cos(theta1);

@@ -1,19 +1,24 @@
 function y = outputFcnRoboticArm(x, ~, params)
-%OUTPUTFCNHOVERCRAFT Output function for the hovercraft system.
-%   y = OUTPUTFCNHOVERCRAFT(x, ~, ~) returns the output variable y for the
-%   given state vector x.
+%OUTPUTFCNROBOTICARM Output function for the 2-DOF robotic arm system.
+%   y = OUTPUTFCNROBOTICARM(x, ~, params) returns the output variable y for the
+%   given state vector x and parameter vector params.
 %
 %   Input:
-%       x - State vector where:
-%           x(1): theta    (heading angle in radians)
-%           x(2): dtheta   (angular velocity in radians/sec)
-%           x(3): x_pos    (x position in meters)
-%           x(4): dx       (x velocity in m/s)
-%           x(5): y_pos    (y position in meters)
-%           x(6): dy       (y velocity in m/s)
+%       x      - State vector where:
+%                x(1): theta1    (joint 1 angle in radians)
+%                x(2): omega1    (joint 1 angular velocity in radians/sec)
+%                x(3): theta2    (joint 2 angle in radians)
+%                x(4): omega2    (joint 2 angular velocity in radians/sec)
+%
+%       params - Parameter vector where:
+%                params(3): a1   (length of link 1 in meters)
+%                params(4): a2   (length of link 2 in meters)
+%                params(7): h    (height of arm base in meters)
 %
 %   Output:
-%       y - Output vector [cos(theta); sin(theta); x_pos; y_pos] for hovercraft state (all in global frame)
+%       y - Output vector [ye; ze] where:
+%           ye = x position of end-effector (in base frame)
+%           ze = z position of end-effector (in base frame)
 
 theta1 = x(1);      % Joint 1 angle (rad)
 theta2 = x(3);      % Joint 2 angle (rad)
