@@ -9,6 +9,8 @@ function y = outputFcnRoboticArm(x, ~, params)
 %                x(2): omega1    (joint 1 angular velocity in radians/sec)
 %                x(3): theta2    (joint 2 angle in radians)
 %                x(4): omega2    (joint 2 angular velocity in radians/sec)
+%                x(5): tau1_d    (joint 1 input torque disturbance in N*m)
+%                x(6): tau2_d    (joint 2 input torque disturbance in N*m)
 %
 %       params - Parameter vector where:
 %                params(3): a1   (length of link 1 in meters)

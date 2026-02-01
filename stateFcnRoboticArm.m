@@ -2,33 +2,38 @@ function dxdt = stateFcnRoboticArm(x, u, params)
 % stateFcnRoboticArm: Computes the time derivative of the 2-DOF robotic arm state.
 %
 % Inputs:
-%   x      - State vector [theta1; omega1; theta2; omega2]
+%   x      - State vector [theta1; omega1; theta2; omega2; tau1_d; tau2_d]
 %            theta1  = Joint 1 angle (rad)
 %            omega1  = Joint 1 angular velocity (rad/s)
 %            theta2  = Joint 2 angle (rad)
 %            omega2  = Joint 2 angular velocity (rad/s)
+%            tau1_d  = Joint 1 input torque disturbance (N*m)
+%            tau2_d  = Joint 2 input torque disturbance (N*m)
 %   u      - Control input vector [tau1; tau2]
 %            tau1    = Joint 1 input torque (N*m)
 %            tau2    = Joint 2 input torque (N*m)
 %   params - Vector of physical parameters:
-%            [m1; m2; a1; a2; kj1; kj2; ac1; ac2]
+%            [m1; m2; a1; a2; kj1; kj2; lbz; ac1; ac2]
 %            m1   = Mass of link 1 (kg)
 %            m2   = Mass of link 2 (kg)
 %            a1   = Length of link 1 (m)
 %            a2   = Length of link 2 (m)
 %            kj1  = Joint 1 viscous friction (N*m*s/rad)
 %            kj2  = Joint 2 viscous friction (N*m*s/rad)
+%            h    = Height (z offset) of arm base (m) [unused in dynamics]
 %            ac1  = Center of mass position, link 1 (m)
 %            ac2  = Center of mass position, link 2 (m)
+%
 % Output:
-%   dxdt   - Time derivative of state vector [omega1; domega1; omega2; domega2]
+%   dxdt   - Time derivative of state vector [theta1_dot; omega1_dot; theta2_dot; omega2_dot; tau1_d_dot; tau2_d_dot]
+%            (with tau1_d_dot and tau2_d_dot assumed zero here)
 
 theta1 = x(1);      % Joint 1 angle (rad)
 omega1 = x(2);      % Joint 1 angular velocity (rad/s)
 theta2 = x(3);      % Joint 2 angle (rad)
 omega2 = x(4);      % Joint 2 angular velocity (rad/s)
-tau1_d = x(5);      % Joint 1 input torque disturbance(N*m)
-tau2_d = x(6);      % Joint 2 input torque disturbance(N*m)
+tau1_d = x(5);      % Joint 1 input torque disturbance (N*m)
+tau2_d = x(6);      % Joint 2 input torque disturbance (N*m)
 
 tau1 = u(1);        % Torque applied to joint 1 (N*m)
 tau2 = u(2);        % Torque applied to joint 2 (N*m)
@@ -39,6 +44,7 @@ a1 = params(3);     % Length of link 1 (m)
 a2 = params(4);     % Length of link 2 (m)
 kj1 = params(5);    % Viscous friction at joint 1 (N*m*s/rad)
 kj2 = params(6);    % Viscous friction at joint 2 (N*m*s/rad)
+% params(7) is h, not used here.
 ac1 = params(8);    % Center of mass position, link 1 (m)
 ac2 = params(9);    % Center of mass position, link 2 (m)
 
@@ -72,6 +78,8 @@ tau = [tau1 + tau1_d; tau2 + tau2_d];
 % Joint angular accelerations (domega)
 domega = M \ (tau - C * [omega1; omega2] - G - f);
 
-% Assemble state derivative vector
+% Assemble state derivative vector:
+% [theta1_dot; omega1_dot; theta2_dot; omega2_dot; tau1_d_dot; tau2_d_dot].
+% Here, disturbance torques are assumed constant (i.e., their derivatives are zero).
 dxdt = [omega1; domega(1); omega2; domega(2); 0; 0];
 end
