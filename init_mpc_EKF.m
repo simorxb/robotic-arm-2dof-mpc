@@ -2,8 +2,8 @@
 
 model = 'control_EKF';
 
-% Number of states (theta1, omega1, theta2, omega2)
-nx = 4;
+% Number of states (theta1, omega1, theta2, omega2, tau1_d, tau2_d)
+nx = 6;
 % Number of outputs (end-effector x, y)
 ny = 2;
 % Number of manipulated variables (joint torques)
@@ -54,22 +54,21 @@ nlobj.Weights.ManipulatedVariables = [0.0 0.0];
 nlobj.Weights.ManipulatedVariablesRate = [0.05 0.05];
 
 % Initial conditions for validation
-x0 = [theta1_0; 0; theta2_0; 0];        % [theta1; omega1; theta2; omega2]
+x0 = [theta1_0; 0; theta2_0; 0; 0; 0];        % [theta1; omega1; theta2; omega2; tau1_d; tau2_d]
 u0 = [0 0];            % [tau1; tau2]
 validateFcns(nlobj, x0, u0, [], {params});
 
 %% Initialise EKF
 
-QK = diag([1*pi/180 30*pi/180 1*pi/180 30*pi/180]);
-QK = eye(4)*1;
-RK = diag([0.001 0.001]);
-P0 = zeros(4);
-Ts_EKF = 0.001;
+QK = diag([1*pi/180 3*pi/180 1*pi/180 3*pi/180 10 10]);
+RK = diag([0.01 0.01]);
+P0 = zeros(6);
+Ts_EKF = 0.01;
 
 %% Simulate MPC for Robotic Arm
 
 % Initial states and references for the robotic arm
-x = [theta1_0; 0; theta2_0; 0];           % [theta1; omega1; theta2; omega2]
+x = [theta1_0; 0; theta2_0; 0; 0; 0];           % [theta1; omega1; theta2; omega2; tau1_d; tau2_d]
 u = [0 0];               % [tau1; tau2]
  
 % Reference: end-effector position (x, y)

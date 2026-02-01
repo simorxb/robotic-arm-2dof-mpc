@@ -27,6 +27,8 @@ theta1 = x(1);      % Joint 1 angle (rad)
 omega1 = x(2);      % Joint 1 angular velocity (rad/s)
 theta2 = x(3);      % Joint 2 angle (rad)
 omega2 = x(4);      % Joint 2 angular velocity (rad/s)
+tau1_d = x(5);      % Joint 1 input torque disturbance(N*m)
+tau2_d = x(6);      % Joint 2 input torque disturbance(N*m)
 
 tau1 = u(1);        % Torque applied to joint 1 (N*m)
 tau2 = u(2);        % Torque applied to joint 2 (N*m)
@@ -65,11 +67,11 @@ G = [m1*g*ac1*cos(theta1) + m2*g*(a1*cos(theta1) + ac2*cos(theta1 + theta2));
 % Viscous friction (2x1)
 f = [kj1*omega1; kj2*omega2];
 
-tau = [tau1; tau2];
+tau = [tau1 + tau1_d; tau2 + tau2_d];
 
 % Joint angular accelerations (domega)
 domega = M \ (tau - C * [omega1; omega2] - G - f);
 
 % Assemble state derivative vector
-dxdt = [omega1; domega(1); omega2; domega(2)];
+dxdt = [omega1; domega(1); omega2; domega(2); 0; 0];
 end
