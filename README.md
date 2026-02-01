@@ -17,7 +17,8 @@ This project explores advanced control techniques applied to a planar robotic ma
 ## Robotic Arm Modeling
 
 ### System Diagram
-The 2-DOF robotic arm consists of two rigid links with the following characteristics (see diagram on **page 2** of the PDF):
+
+The 2-DOF robotic arm consists of two rigid links with the following characteristics (see diagram on **page 2** of [Nonlinear MPC Robotic Arm.pdf](https://github.com/user-attachments/files/24698597/Nonlinear.MPC.Robotic.Arm.pdf)):
 
 - Link 1 length ($a_1$): 0.2 m  
 - Link 2 length ($a_2$): 0.15 m  
@@ -32,10 +33,10 @@ M(\theta) \cdot \ddot{\theta} + C(\theta, \dot{\theta}) \cdot \dot{\theta} + G(\
 $$
 
 Where:
-- $\theta = \begin{bmatrix} \theta_1 \\ \theta_2 \end{bmatrix}$
+- $\theta = [\theta_1; \theta_2]$
 - $M, C, G$ represent the inertia matrix, Coriolis/centrifugal forces, and gravity terms, respectively.
 
-These are derived from the multibody dynamics equations shown on **page 4**.
+These are derived from the multibody dynamics equations shown on **page 4** [Nonlinear MPC Robotic Arm.pdf](https://github.com/user-attachments/files/24698597/Nonlinear.MPC.Robotic.Arm.pdf).
 
 ## Nonlinear MPC Design
 
@@ -62,7 +63,7 @@ The controller cost function is based on the deviation of the end-effector posit
   - Output: [1 1]  
   - Manipulated variables rate of change: [0.05 0.05]
 
-See implementation details in code on **pages 6–10**.
+See implementation details in code on **pages 6–10** [Nonlinear MPC Robotic Arm.pdf](https://github.com/user-attachments/files/24698597/Nonlinear.MPC.Robotic.Arm.pdf).
 
 ## Simulation Scenario
 
@@ -75,12 +76,12 @@ The reference trajectory for the end-effector is updated at specified intervals:
 2. $[0.2, 0.6]$ m at $t = 1.5$ s  
 3. $[-0.2, 0.6]$ m at $t = 3$ s
 
-Trajectory plots and control results are provided on **pages 11 and 15**.
+Trajectory plots and control results are provided on **pages 11 and 15** [Nonlinear MPC Robotic Arm.pdf](https://github.com/user-attachments/files/24698597/Nonlinear.MPC.Robotic.Arm.pdf).
 
 ## Simulink and Simscape Implementation
-- Simulink model for the NMPC controller is included and illustrated on **page 12**.
+- Simulink model for the NMPC controller is included and illustrated on **page 12** [Nonlinear MPC Robotic Arm.pdf](https://github.com/user-attachments/files/24698597/Nonlinear.MPC.Robotic.Arm.pdf).
 - Simscape Multibody is used for realistic physical simulation.
-- Simulink result plots for joint angles, torques, velocities, and end-effector motion are shown on **pages 14–15**.
+- Simulink result plots for joint angles, torques, velocities, and end-effector motion are shown on **pages 14–15** [Nonlinear MPC Robotic Arm.pdf](https://github.com/user-attachments/files/24698597/Nonlinear.MPC.Robotic.Arm.pdf).
 
 ## Results and Performance
 
@@ -89,7 +90,7 @@ Trajectory plots and control results are provided on **pages 11 and 15**.
 - Smooth control transitions between targets.
 - Accurate trajectory tracking in a multibody environment.
 
-See results in:
+See results in [Nonlinear MPC Robotic Arm.pdf](https://github.com/user-attachments/files/24698597/Nonlinear.MPC.Robotic.Arm.pdf):
 - **Page 11**: MATLAB-based NMPC simulation plots  
 - **Page 14**: Simulink simulation with Simscape Multibody  
 - **Page 15**: Final end-effector trajectory plot
