@@ -2,8 +2,8 @@
 
 model = 'control';
 
-% Number of states (theta1, omega1, theta2, omega2)
-nx = 4;
+% Number of states (theta1, omega1, theta2, omega2, tau1_d, tau2_d)
+nx = 6;
 % Number of outputs (end-effector x, y)
 ny = 2;
 % Number of manipulated variables (joint torques)
@@ -16,7 +16,7 @@ nlobj = nlmpc(nx, ny, 'MV', 1:nmv);
 
 % Number of model parameters (for custom state function)
 nlobj.Model.NumberOfParameters = 1;
-% Physical parameters vector: [m1; m2; a1; a2; kj1; kj2]
+% Physical parameters vector: [m1; m2; a1; a2; kj1; kj2; h; ac1; ac2]
 % Values assumed initialized elsewhere
 params = [m1; m2; a1; a2; kj1; kj2; lbz-rj1; ac1; ac2];
 
@@ -54,14 +54,14 @@ nlobj.Weights.ManipulatedVariables = [0.0 0.0];
 nlobj.Weights.ManipulatedVariablesRate = [0.05 0.05];
 
 % Initial conditions for validation
-x0 = [theta1_0; 0; theta2_0; 0];        % [theta1; omega1; theta2; omega2]
+x0 = [theta1_0; 0; theta2_0; 0; 0; 0];        % [theta1; omega1; theta2; omega2; tau1_d; tau2_d]
 u0 = [0 0];            % [tau1; tau2]
 validateFcns(nlobj, x0, u0, [], {params});
 
 %% Simulate MPC for Robotic Arm
 
 % Initial states and references for the robotic arm
-x = [theta1_0; 0; theta2_0; 0];           % [theta1; omega1; theta2; omega2]
+x = [theta1_0; 0; theta2_0; 0; 0; 0];           % [theta1; omega1; theta2; omega2; tau1_d; tau2_d]
 u = [0 0];               % [tau1; tau2]
  
 % Reference: end-effector position (x, y)
