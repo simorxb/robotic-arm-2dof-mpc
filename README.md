@@ -1,4 +1,4 @@
-[Nonlinear MPC Robotic Arm and EKF.pdf](https://github.com/user-attachments/files/24998084/Nonlinear.MPC.Robotic.Arm.and.EKF.pdf)# Nonlinear MPC - Robotic Arm Control (2-DOF)
+# Nonlinear MPC - Robotic Arm Control (2-DOF)
 
 [![Open in MATLAB Online](https://www.mathworks.com/images/responsive/global/open-in-matlab-online.svg)](https://matlab.mathworks.com/open/github/v1?repo=simorxb/robotic-arm-2dof-mpc)
 
