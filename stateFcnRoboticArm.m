@@ -13,7 +13,7 @@ function dxdt = stateFcnRoboticArm(x, u, params)
 %            tau1    = Joint 1 input torque (N*m)
 %            tau2    = Joint 2 input torque (N*m)
 %   params - Vector of physical parameters:
-%            [m1; m2; a1; a2; kj1; kj2; lbz; ac1; ac2]
+%            [m1; m2; a1; a2; kj1; kj2; h; ac1; ac2]
 %            m1   = Mass of link 1 (kg)
 %            m2   = Mass of link 2 (kg)
 %            a1   = Length of link 1 (m)
