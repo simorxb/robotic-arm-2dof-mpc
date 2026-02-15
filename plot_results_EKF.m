@@ -110,3 +110,208 @@ legend('Trajectory', 'Target 1', 'Target 2', 'Target 3');
 xlabel('y (m)');
 ylabel('z (m)');
 title('End-Effector Trajectory');
+
+%% Animate results (real-time videos)
+t_anim = y_log.Time;
+num_steps = numel(t_anim);
+if num_steps < 2
+    return;
+end
+
+dt_anim = mean(diff(t_anim));
+if ~isfinite(dt_anim) || dt_anim <= 0
+    dt_anim = 0.01;
+end
+
+% Fixed axis limits for animation (use full data range)
+t_lim = [t_anim(1), t_anim(end)];
+
+y_all = [y_log.Data; ye_ref_log.Data];
+z_all = [z_log.Data; ze_ref_log.Data];
+theta_all_deg = [theta1_log.Data; theta2_log.Data; xhat_log.Data(:,1); xhat_log.Data(:,3)] * 180/pi;
+omega_all = [omega1_log.Data; omega2_log.Data; xhat_log.Data(:,2); xhat_log.Data(:,4)];
+tau_all = [tau1_log.Data; tau2_log.Data];
+taud_all = [xhat_log.Data(:,5); xhat_log.Data(:,6)];
+
+y_min = min(y_all); y_max = max(y_all); y_pad = max(1e-6, 0.05*(y_max - y_min));
+z_min = min(z_all); z_max = max(z_all); z_pad = max(1e-6, 0.05*(z_max - z_min));
+theta_min = min(theta_all_deg); theta_max = max(theta_all_deg); theta_pad = max(1e-6, 0.05*(theta_max - theta_min));
+omega_min = min(omega_all); omega_max = max(omega_all); omega_pad = max(1e-6, 0.05*(omega_max - omega_min));
+tau_min = min(tau_all); tau_max = max(tau_all); tau_pad = max(1e-6, 0.05*(tau_max - tau_min));
+taud_min = min(taud_all); taud_max = max(taud_all); taud_pad = max(1e-6, 0.05*(taud_max - taud_min));
+
+y_lim = [y_min - y_pad, y_max + y_pad];
+z_lim = [z_min - z_pad, z_max + z_pad];
+theta_lim = [theta_min - theta_pad, theta_max + theta_pad];
+omega_lim = [omega_min - omega_pad, omega_max + omega_pad];
+tau_lim = [tau_min - tau_pad, tau_max + tau_pad];
+taud_lim = [taud_min - taud_pad, taud_max + taud_pad];
+
+traj_y_all = [y_log.Data; ref1(1); ref2(1); ref3(1)];
+traj_z_all = [z_log.Data; ref1(2); ref2(2); ref3(2)];
+traj_y_min = min(traj_y_all); traj_y_max = max(traj_y_all); traj_y_pad = max(1e-6, 0.05*(traj_y_max - traj_y_min));
+traj_z_min = min(traj_z_all); traj_z_max = max(traj_z_all); traj_z_pad = max(1e-6, 0.05*(traj_z_max - traj_z_min));
+traj_y_lim = [traj_y_min - traj_y_pad, traj_y_max + traj_y_pad];
+traj_z_lim = [traj_z_min - traj_z_pad, traj_z_max + traj_z_pad];
+
+fig_anim = figure('Units', 'normalized', 'OuterPosition', [0 0 1 1]);
+
+subplot(3,2,1)
+hold on;
+stairs(ye_ref_log.Time, ye_ref_log.Data, 'r--', 'LineWidth', 2);
+y_line = plot(nan, nan, 'b-', 'LineWidth', 2);
+hold off;
+grid on;
+legend('y_{ref}', 'y', 'Location', 'bestoutside');
+xlabel('Time (s)');
+ylabel('y (m)');
+title('End-Effector y');
+xlim(t_lim);
+ylim(y_lim);
+
+subplot(3,2,2)
+hold on;
+stairs(ze_ref_log.Time, ze_ref_log.Data, 'r--', 'LineWidth', 2);
+z_line = plot(nan, nan, 'b-', 'LineWidth', 2);
+hold off;
+grid on;
+legend('z_{ref}', 'z', 'Location', 'bestoutside');
+xlabel('Time (s)');
+ylabel('z (m)');
+title('End-Effector z');
+xlim(t_lim);
+ylim(z_lim);
+
+subplot(3,2,3)
+hold on;
+theta1_line = plot(nan, nan, 'b-', 'LineWidth', 2);
+theta2_line = plot(nan, nan, 'g-', 'LineWidth', 2);
+theta1_hat_line = plot(nan, nan, 'm-', 'LineWidth', 2);
+theta2_hat_line = plot(nan, nan, 'c-', 'LineWidth', 2);
+hold off;
+grid on;
+legend('\theta_1', '\theta_2', '\theta_1 EKF', '\theta_2 EKF', 'Location', 'bestoutside');
+xlabel('Time (s)');
+ylabel('Angle (deg)');
+title('Joint Angles');
+xlim(t_lim);
+ylim(theta_lim);
+
+subplot(3,2,4)
+hold on;
+omega1_line = plot(nan, nan, 'b-', 'LineWidth', 2);
+omega2_line = plot(nan, nan, 'g-', 'LineWidth', 2);
+omega1_hat_line = plot(nan, nan, 'm-', 'LineWidth', 2);
+omega2_hat_line = plot(nan, nan, 'c-', 'LineWidth', 2);
+hold off;
+grid on;
+legend('\omega_1', '\omega_2', '\omega_1 EKF', '\omega_2 EKF', 'Location', 'bestoutside');
+xlabel('Time (s)');
+ylabel('Angular Velocity (rad/s)');
+title('Joint Velocities');
+xlim(t_lim);
+ylim(omega_lim);
+
+subplot(3,2,5)
+hold on;
+tau1_line = stairs(nan, nan, 'b-', 'LineWidth', 2);
+tau2_line = stairs(nan, nan, 'g-', 'LineWidth', 2);
+hold off;
+grid on;
+legend('\tau_1', '\tau_2', 'Location', 'bestoutside');
+xlabel('Time (s)');
+ylabel('Torque (N*m)');
+title('Joint Torques');
+xlim(t_lim);
+ylim(tau_lim);
+
+subplot(3,2,6)
+hold on;
+taud1_line = plot(nan, nan, 'm-', 'LineWidth', 2);
+taud2_line = plot(nan, nan, 'c-', 'LineWidth', 2);
+hold off;
+grid on;
+legend('\tau_{d1} EKF', '\tau_{d2} EKF', 'Location', 'bestoutside');
+xlabel('Time (s)');
+ylabel('Disturbance Torque (N*m)');
+title('Estimated Torque Disturbances');
+xlim(t_lim);
+ylim(taud_lim);
+
+sgtitle('Robotic Arm MPC - Simulation in Simulink with Simscape Multibody (Animation)');
+
+fig_traj = figure('Units', 'normalized', 'OuterPosition', [0 0 1 1]);
+hold on;
+traj_line = plot(nan, nan, 'b-', 'LineWidth', 2);
+traj_point = plot(nan, nan, 'ko', 'LineWidth', 2);
+plot(ref1(1), ref1(2), 'ro', 'LineWidth', 2);
+plot(ref2(1), ref2(2), 'go', 'LineWidth', 2);
+plot(ref3(1), ref3(2), 'mo', 'LineWidth', 2);
+hold off;
+grid on;
+axis equal;
+legend('Trajectory', 'Current', 'Target 1', 'Target 2', 'Target 3', 'Location', 'bestoutside');
+xlabel('y (m)');
+ylabel('z (m)');
+title('End-Effector Trajectory (Animation)');
+xlim(traj_y_lim);
+ylim(traj_z_lim);
+
+video1 = VideoWriter('results_EKF_animation.mp4', 'MPEG-4');
+video2 = VideoWriter('trajectory_EKF_animation.mp4', 'MPEG-4');
+open(video1);
+open(video2);
+
+tau1_log_time = t_anim;
+tau2_log_time = t_anim;
+tau1_log_interpolated = interp1(tau1_log.Time, tau1_log.Data, tau1_log_time, 'previous');
+tau2_log_interpolated = interp1(tau2_log.Time, tau2_log.Data, tau2_log_time, 'previous');
+
+for k = 1:num_steps
+    tk = t_anim(k);
+
+    y_idx = y_log.Time <= tk;
+    z_idx = z_log.Time <= tk;
+    t1_idx = theta1_log.Time <= tk;
+    t2_idx = theta2_log.Time <= tk;
+    w1_idx = omega1_log.Time <= tk;
+    w2_idx = omega2_log.Time <= tk;
+    u1_idx = tau1_log_time <= tk;
+    u2_idx = tau2_log_time <= tk;
+    xhat_idx = xhat_log.Time <= tk;
+
+    set(y_line, 'XData', y_log.Time(y_idx), 'YData', y_log.Data(y_idx));
+    set(z_line, 'XData', z_log.Time(z_idx), 'YData', z_log.Data(z_idx));
+
+    set(theta1_line, 'XData', theta1_log.Time(t1_idx), 'YData', theta1_log.Data(t1_idx) * 180/pi);
+    set(theta2_line, 'XData', theta2_log.Time(t2_idx), 'YData', theta2_log.Data(t2_idx) * 180/pi);
+    set(theta1_hat_line, 'XData', xhat_log.Time(xhat_idx), 'YData', xhat_log.Data(xhat_idx,1) * 180/pi);
+    set(theta2_hat_line, 'XData', xhat_log.Time(xhat_idx), 'YData', xhat_log.Data(xhat_idx,3) * 180/pi);
+
+    set(omega1_line, 'XData', omega1_log.Time(w1_idx), 'YData', omega1_log.Data(w1_idx));
+    set(omega2_line, 'XData', omega2_log.Time(w2_idx), 'YData', omega2_log.Data(w2_idx));
+    set(omega1_hat_line, 'XData', xhat_log.Time(xhat_idx), 'YData', xhat_log.Data(xhat_idx,2));
+    set(omega2_hat_line, 'XData', xhat_log.Time(xhat_idx), 'YData', xhat_log.Data(xhat_idx,4));
+
+    set(tau1_line, 'XData', tau1_log_time(u1_idx), 'YData', tau1_log_interpolated(u1_idx));
+    set(tau2_line, 'XData', tau2_log_time(u2_idx), 'YData', tau2_log_interpolated(u2_idx));
+
+    set(taud1_line, 'XData', xhat_log.Time(xhat_idx), 'YData', xhat_log.Data(xhat_idx,5));
+    set(taud2_line, 'XData', xhat_log.Time(xhat_idx), 'YData', xhat_log.Data(xhat_idx,6));
+
+    set(traj_line, 'XData', y_log.Data(y_idx), 'YData', z_log.Data(z_idx));
+    if any(y_idx)
+        set(traj_point, 'XData', y_log.Data(find(y_idx, 1, 'last')), 'YData', z_log.Data(find(z_idx, 1, 'last')));
+    end
+
+    drawnow;
+    writeVideo(video1, getframe(fig_anim));
+    writeVideo(video2, getframe(fig_traj));
+
+    if k < num_steps
+        pause(max(0, t_anim(k+1) - t_anim(k)));
+    end
+end
+
+close(video1);
+close(video2);
