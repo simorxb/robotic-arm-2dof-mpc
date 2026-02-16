@@ -113,23 +113,8 @@ title('End-Effector Trajectory');
 
 %% Animate results (real-time videos)
 
-% Extract animation time vector from end-effector y_log
-t_anim = y_log.Time;
-num_steps = numel(t_anim);
-
-% If there are fewer than 2 steps, nothing to animate
-if num_steps < 2
-    return;
-end
-
-% Estimate average time step for animation; use 0.01s fallback if needed
-dt_anim = mean(diff(t_anim));
-if ~isfinite(dt_anim) || dt_anim <= 0
-    dt_anim = 0.01;
-end
-
 % Determine time axis limits for animation (span of the log)
-t_lim = [t_anim(1), t_anim(end)];
+t_lim = [y_log.Time(1), y_log.Time(end)];
 
 % Gather all values for axis limit calculations (merge logs and refs)
 y_all = [y_log.Data; ye_ref_log.Data];
@@ -281,8 +266,20 @@ ylim(traj_z_lim);
 % Setup video writers for saving animations to files
 video1 = VideoWriter('results_EKF_animation.mp4', 'MPEG-4');
 video2 = VideoWriter('trajectory_EKF_animation.mp4', 'MPEG-4');
+
+video_fps = 30;
+% Match video duration to simulation duration
+sim_duration = y_log.Time(end) - y_log.Time(1);
+
+num_steps = round(sim_duration * video_fps);
+
+video1.FrameRate = video_fps;
+video2.FrameRate = video_fps;
+
 open(video1);
 open(video2);
+
+t_anim = linspace(y_log.Time(1), y_log.Time(end), num_steps);
 
 % Interpolate torque signals to animation time base (stepwise - 'previous')
 tau1_log_time = t_anim;
@@ -337,11 +334,6 @@ for k = 1:num_steps
     drawnow;
     writeVideo(video1, getframe(fig_anim));
     writeVideo(video2, getframe(fig_traj));
-
-    % Pause (in real time) to pace the animation as in simulated time
-    if k < num_steps
-        pause(max(0, t_anim(k+1) - t_anim(k)));
-    end
 end
 
 % Close and finalize video writers
