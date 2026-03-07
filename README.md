@@ -178,7 +178,28 @@ The results confirm that **there is no Model Predictive Control without a state 
 
 ---
 
+## Comparing No-EKF and EKF Simulations
 
+The script **`run_compare_noEKF_vs_EKF.m`** runs both control strategies under the same conditions and plots a direct comparison.
+
+### What the script does
+
+1. **No-EKF run**  
+   Runs `init`, `init_mpc`, then simulates **`control.slx`** (NMPC with full state feedback). The simulation output is stored.
+
+2. **Workspace reset**  
+   The workspace is cleared except for that output (saved/loaded via a temporary file) so the EKF run starts from a clean state.
+
+3. **EKF run**  
+   Runs `init`, `init_mpc_EKF`, then simulates **`control_EKF.slx`** (NMPC with EKF state and disturbance estimation). The simulation output is stored.
+
+4. **Comparison figures**  
+   - **Figure 1** (3 subplots): θ₁ no EKF vs θ₁ EKF; θ₂ no EKF vs θ₂ EKF; joint torques τ₁ and τ₂ for both runs.  
+   - **Figure 2**: 2D end-effector trajectory (y–z) for both runs, with the three target points overlaid.
+
+Use this script to compare tracking and control effort between the full-state and EKF-based setups on the same scenario.
+
+---
 
 ## Author
 This project is developed by Simone Bertoni. Learn more about my work on my personal website - [Simone Bertoni - Control Lab](https://simonebertonilab.com/).
