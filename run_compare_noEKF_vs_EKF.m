@@ -7,23 +7,23 @@
 %% ----- Run no-EKF (control.slx) -----
 init;
 init_mpc;
-out_noEKF = sim('control');
+out_full_state = sim('control');
 
 %% ----- Keep only no-EKF output, then run EKF -----
-clearvars -except out_noEKF;
+clearvars -except out_full_state;
 
 init;
 init_mpc_EKF;
 out_EKF = sim('control_EKF');
 
 %% ----- Extract logged signals for comparison -----
-% No EKF
-theta1_noEKF = out_noEKF.logsout.get('theta1').Values;
-theta2_noEKF = out_noEKF.logsout.get('theta2').Values;
-tau1_noEKF  = out_noEKF.logsout.get('tau1').Values;
-tau2_noEKF  = out_noEKF.logsout.get('tau2').Values;
-y_noEKF     = out_noEKF.logsout.get('y').Values;
-z_noEKF     = out_noEKF.logsout.get('z').Values;
+% Full State
+theta1_noEKF = out_full_state.logsout.get('theta1').Values;
+theta2_noEKF = out_full_state.logsout.get('theta2').Values;
+tau1_noEKF  = out_full_state.logsout.get('tau1').Values;
+tau2_noEKF  = out_full_state.logsout.get('tau2').Values;
+y_noEKF     = out_full_state.logsout.get('y').Values;
+z_noEKF     = out_full_state.logsout.get('z').Values;
 
 % EKF
 theta1_EKF = out_EKF.logsout.get('theta1').Values;
@@ -38,9 +38,9 @@ ref1 = [0.2, 0.3];
 ref2 = [0.2, 0.6];
 ref3 = [-0.2, 0.6];
 
-%% ----- Figure 1: theta1, theta2, torques (no EKF vs EKF) -----
-figure('Name', 'Comparison: No EKF vs EKF');
-sgtitle('No EKF vs EKF Comparison');
+%% ----- Figure 1: theta1, theta2, torques (Full State vs EKF) -----
+figure('Name', 'Comparison: Joint Positions and Torques - Measured Full State vs EKF');
+sgtitle('Comparison: Joint Positions and Torques - Measured Full State vs EKF');
 
 subplot(3,1,1)
 hold on;
@@ -48,7 +48,7 @@ plot(theta1_noEKF.Time, theta1_noEKF.Data * 180/pi, 'b-', 'LineWidth', 2);
 plot(theta1_EKF.Time,   theta1_EKF.Data * 180/pi, 'g-', 'LineWidth', 2);
 hold off;
 grid on;
-legend('\theta_1 (no EKF)', '\theta_1 (EKF)', 'Location', 'best');
+legend('\theta_1 (Full State)', '\theta_1 (EKF)', 'Location', 'best');
 xlabel('Time (s)');
 ylabel('Angle (deg)');
 title('\theta_1');
@@ -59,7 +59,7 @@ plot(theta2_noEKF.Time, theta2_noEKF.Data * 180/pi, 'b-', 'LineWidth', 2);
 plot(theta2_EKF.Time,   theta2_EKF.Data * 180/pi, 'g-', 'LineWidth', 2);
 hold off;
 grid on;
-legend('\theta_2 (no EKF)', '\theta_2 (EKF)', 'Location', 'best');
+legend('\theta_2 (Full State)', '\theta_2 (EKF)', 'Location', 'best');
 xlabel('Time (s)');
 ylabel('Angle (deg)');
 title('\theta_2');
@@ -72,13 +72,13 @@ stairs(tau1_EKF.Time,   tau1_EKF.Data, 'g-', 'LineWidth', 2);
 stairs(tau2_EKF.Time,   tau2_EKF.Data, 'r-', 'LineWidth', 2);
 hold off;
 grid on;
-legend('\tau_1 (no EKF)', '\tau_2 (no EKF)', '\tau_1 (EKF)', '\tau_2 (EKF)', 'Location', 'best');
+legend('\tau_1 (Full State)', '\tau_2 (Full State)', '\tau_1 (EKF)', '\tau_2 (EKF)', 'Location', 'best');
 xlabel('Time (s)');
 ylabel('Torque (N\cdotm)');
 title('Joint Torques');
 
-%% ----- Figure 2: 2D end-effector trajectory (no EKF vs EKF) + 3 targets -----
-figure('Name', 'Trajectory: No EKF vs EKF');
+%% ----- Figure 2: 2D end-effector trajectory (Full State vs EKF) + 3 targets -----
+figure('Name', 'Trajectory Comparison: Full State vs EKF');
 hold on;
 plot(y_noEKF.Data, z_noEKF.Data, 'b-', 'LineWidth', 2);
 plot(y_EKF.Data,   z_EKF.Data,   'g-', 'LineWidth', 2);
@@ -88,7 +88,7 @@ plot(ref3(1), ref3(2), 'ko', 'MarkerSize', 10, 'MarkerFaceColor', 'm');
 hold off;
 grid on;
 axis equal;
-legend('End-effector (no EKF)', 'End-effector (EKF)', 'Target 1', 'Target 2', 'Target 3', 'Location', 'best');
+legend('End-effector (Full State)', 'End-effector (EKF)', 'Target 1', 'Target 2', 'Target 3', 'Location', 'best');
 xlabel('y (m)');
 ylabel('z (m)');
-title('End-Effector 2D Trajectory');
+title('Trajectory Comparison: Full State vs EKF');
