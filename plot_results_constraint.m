@@ -79,7 +79,7 @@ sgtitle('Robotic Arm MPC - Simulation in Simulink with Simscape Multibody');
 % Plot end effector trajectory with rectangular constraint
 figure;
 ref1 = [0.05, 0.3];
-ref2 = [0.15, 0.6];
+ref2 = [0.2, 0.6];
 hold on;
 plot(y_log.Data, z_log.Data, 'b-', 'LineWidth', 2);
 plot(ref1(1), ref1(2), 'ro', 'LineWidth', 2);
