@@ -13,6 +13,7 @@ This project explores advanced control techniques applied to a planar robotic ma
 - **Simscape Multibody simulation** of a 2-DOF planar robotic arm.
 - **End-effector position control** in the y-z plane using predictive optimization.
 - **Trajectory planning and disturbance rejection** tested in simulation.
+- **Rectangular obstacle constraints** on the full arm geometry (both links and end-effector).
 
 ## Robotic Arm Modeling
 
@@ -94,6 +95,33 @@ See results in [Nonlinear MPC Robotic Arm.pdf](https://github.com/user-attachmen
 - **Page 11**: MATLAB-based NMPC simulation plots  
 - **Page 14**: Simulink simulation with Simscape Multibody  
 - **Page 15**: Final end-effector trajectory plot
+
+---
+
+## Rectangular Constraint Scenario
+
+This repository also includes a constrained NMPC setup with a rectangular forbidden area in the $y,z$ workspace:
+
+- The constraint is applied to:
+  - End-effector predicted points
+  - Interpolated points between consecutive prediction nodes
+  - Sampled points along both arm links (collision avoidance for link 1 and link 2)
+
+### Files
+- **`init_mpc_constraint.m`**  
+  Configures NMPC with custom inequality constraints for rectangle avoidance and includes a one-shot prediction debug plot in the $y,z$ plane, and a MATLAB simulation loop using `nlmpcmove`.
+
+- **`control_constraint.slx`**  
+  Simulink model for running the constrained controller configuration.
+
+- **`plot_results_constraint.m`**  
+  Post-processing script for constrained simulations, including the rectangle overlay in the 2D end-effector trajectory figure.
+
+### Typical constrained run
+1. Run `init`
+2. Run `init_mpc_constraint`
+3. Simulate `control_constraint.slx`
+4. Run `plot_results_constraint`
 
 ---
 
