@@ -80,12 +80,11 @@ sgtitle('Robotic Arm MPC - Simulation in Simulink with Simscape Multibody');
 figure;
 ref1 = [0.05, 0.3];
 ref2 = [0.15, 0.6];
-rectBounds = [0.1, 0.3, 0.35, 0.5]; % [y_min, y_max, z_min, z_max]
 hold on;
 plot(y_log.Data, z_log.Data, 'b-', 'LineWidth', 2);
 plot(ref1(1), ref1(2), 'ro', 'LineWidth', 2);
 plot(ref2(1), ref2(2), 'go', 'LineWidth', 2);
-rectangle('Position', [rect_ycenter - rect_ly/2 - margin, rect_zcenter - rect_lz/2 - margin, rect_ly, rect_lz], ...
+rectangle('Position', [rect_ycenter - rect_ly/2, rect_zcenter - rect_lz/2, rect_ly, rect_lz], ...
     'EdgeColor', [0.85 0.2 0.2], 'LineWidth', 1.5, 'LineStyle', '--');
 hold off;
 grid on;

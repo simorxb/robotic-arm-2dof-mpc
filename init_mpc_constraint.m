@@ -14,6 +14,9 @@ nu = nmv;
 % Create nonlinear MPC controller object
 nlobj = nlmpc(nx, ny, 'MV', 1:nmv);
 
+% Works better with this constraint
+nlobj.Optimization.SolverOptions.Algorithm = "interior-point";
+
 % Number of model parameters (for custom state function)
 nlobj.Model.NumberOfParameters = 1;
 % Physical parameters vector: [m1; m2; a1; a2; kj1; kj2; h; ac1; ac2]
@@ -30,7 +33,7 @@ nlobj.Ts = 0.01;
 
 % Prediction and control horizons
 nlobj.PredictionHorizon = 20;
-nlobj.ControlHorizon = 5;
+nlobj.ControlHorizon = 15;
 
 % Assign state and output functions
 nlobj.Model.StateFcn = "stateFcnRoboticArm";
@@ -71,24 +74,24 @@ x0 = [theta1_0; 0; theta2_0; 0; 0; 0];        % [theta1; omega1; theta2; omega2;
 u0 = [0 0];            % [tau1; tau2]
 validateFcns(nlobj, x0, u0, [], {params});
 
-%% Debug
+%% Single solution
 
-% Initial states and references for the robotic arm
-x = [theta1_0; 0; theta2_0; 0; 0; 0];           % [theta1; omega1; theta2; omega2; tau1_d; tau2_d]
+% Initial states and references for the robotic arm (difficult point)
+x = [-1.83; 0; 2.65; 0; 0; 0];           % [theta1; omega1; theta2; omega2; tau1_d; tau2_d]
 u = [0 0];               % [tau1; tau2]
  
 % Reference: end-effector position (y, z)
-ye_ref = 0.15;
+ye_ref = 0.2;
 ze_ref = 0.6;
 ref = [ye_ref ze_ref];
 
 nloptions = nlmpcmoveopt;
 nloptions.Parameters = {params};
 
-[mv,nloptions] = nlmpcmove(nlobj, x, u, ref, [], nloptions);
+[mv,~,info] = nlmpcmove(nlobj, x, u, ref, [], nloptions);
 
 % Plot one MPC prediction horizon in the (y,z) plane.
-Xpred = [x'; nloptions.X0];
+Xpred = [x'; info.Xopt];
 theta1_pred = Xpred(:,1);
 theta2_pred = Xpred(:,3);
 y_pred = a1*cos(theta1_pred) + a2*cos(theta1_pred + theta2_pred);
@@ -98,7 +101,7 @@ figure;
 plot(y_pred, z_pred, 'bo-', 'LineWidth', 1.5, 'MarkerSize', 4);
 hold on;
 plot(ye_ref, ze_ref, 'rx', 'LineWidth', 2, 'MarkerSize', 10);
-rectangle('Position', [rect_ycenter - rect_ly/2 - margin, rect_zcenter - rect_lz/2 - margin, rect_ly, rect_lz], ...
+rectangle('Position', [rect_ycenter - rect_ly/2, rect_zcenter - rect_lz/2, rect_ly, rect_lz], ...
     'EdgeColor', [0.85 0.2 0.2], 'LineWidth', 1.5, 'LineStyle', '--');
 grid on;
 axis equal;
@@ -116,11 +119,9 @@ x = [theta1_0; 0; theta2_0; 0; 0; 0];           % [theta1; omega1; theta2; omega
 u = [0 0];               % [tau1; tau2]
  
 % Reference: end-effector position (y, z)
-ye_ref = 0.15;
-ze_ref = 0.6;
 ref = [ye_ref ze_ref];
 
-Tend = 1;
+Tend = 0.5;
 steps = round(Tend/nlobj.Ts);
 
 nloptions = nlmpcmoveopt;
@@ -192,7 +193,7 @@ subplot(3,2,4)
 plot(y_eff, z_eff, 'k-', 'LineWidth', 2);
 hold on;
 plot(ye_ref, ze_ref, 'ro', 'LineWidth', 2);
-rectangle('Position', [rect_ycenter - rect_ly/2 - margin, rect_zcenter - rect_lz/2 - margin, rect_ly, rect_lz], ...
+rectangle('Position', [rect_ycenter - rect_ly/2, rect_zcenter - rect_lz/2, rect_ly, rect_lz], ...
     'EdgeColor', [0.85 0.2 0.2], 'LineWidth', 1.5, 'LineStyle', '--');
 hold off;
 grid on;
@@ -217,9 +218,8 @@ sgtitle('Robotic Arm MPC - Design (Rectangular Constraint)');
 
 function cineq = rectangularObstacleConstraint(X, ~, ~, ~, params, rectBounds)
 % cineq <= 0 is feasible.
-% This function constrains all predicted end-effector points (except current
-% state) and interpolated points along each prediction segment to stay
-% outside the rectangle.
+% This function constrains the full arm geometry (link 1 and link 2), not
+% only the end-effector, to stay outside the rectangle.
 
 theta1 = X(:,1);
 theta2 = X(:,3);
@@ -228,42 +228,57 @@ a1 = params(3);
 a2 = params(4);
 h = params(7);
 
-y = a1*cos(theta1) + a2*cos(theta1 + theta2);
-z = h + a1*sin(theta1) + a2*sin(theta1 + theta2);
-
 y_min = rectBounds(1);
 y_max = rectBounds(2);
 z_min = rectBounds(3);
 z_max = rectBounds(4);
 
-% Skip current state.
-insideMarginY = min(y(2:end) - y_min, y_max - y(2:end));
-insideMarginZ = min(z(2:end) - z_min, z_max - z(2:end));
+% Build configuration samples in prediction time:
+% - all future nodes (skip current X(1,:))
+% - interpolated points between consecutive nodes
+nTimeSegmentSamples = 5;
+if numel(theta1) > 1
+    t = linspace(0, 1, nTimeSegmentSamples + 2);
+    t = t(2:end-1);
 
-% Positive only when point is strictly inside rectangle. (Ignore current state.)
-insideDepthPoints = min(insideMarginY, insideMarginZ);
+    theta1Seg = theta1(1:end-1) + (theta1(2:end) - theta1(1:end-1)) * t;
+    theta2Seg = theta2(1:end-1) + (theta2(2:end) - theta2(1:end-1)) * t;
 
-% Also constrain points sampled along each line segment between consecutive
-% prediction nodes so trajectories cannot pass through the rectangle between
-% nodes. In this case we start from the current state.
-nSegmentSamples = 10;
-insideDepthSegments = [];
-if numel(y) > 1
-    y1 = y(1:end-1);
-    y2 = y(2:end);
-    z1 = z(1:end-1);
-    z2 = z(2:end);
-
-    t = linspace(0, 1, nSegmentSamples + 2);
-    t = t(2:end-1); % interior samples only (endpoints already constrained)
-
-    ySeg = y1 + (y2 - y1) * t;
-    zSeg = z1 + (z2 - z1) * t;
-
-    insideMarginYSeg = min(ySeg - y_min, y_max - ySeg);
-    insideMarginZSeg = min(zSeg - z_min, z_max - zSeg);
-    insideDepthSegments = min(insideMarginYSeg, insideMarginZSeg);
+    theta1Samples = [theta1(2:end); theta1Seg(:)];
+    theta2Samples = [theta2(2:end); theta2Seg(:)];
+else
+    theta1Samples = [];
+    theta2Samples = [];
 end
 
-cineq = [insideDepthPoints; insideDepthSegments(:)];
+if isempty(theta1Samples)
+    cineq = [];
+    return;
+end
+
+% Forward kinematics for sampled configurations
+yJoint = a1*cos(theta1Samples);
+zJoint = h + a1*sin(theta1Samples);
+yEnd = yJoint + a2*cos(theta1Samples + theta2Samples);
+zEnd = zJoint + a2*sin(theta1Samples + theta2Samples);
+
+% Sample points along each physical link so links cannot intersect rectangle.
+nLinkSamples = 2;
+s = linspace(0, 1, nLinkSamples + 2);
+s = s(2:end); % skip base for link 1, keep endpoints
+
+% Link 1: base (0,h) -> joint
+yLink1 = yJoint * s;
+zLink1 = h + (zJoint - h) * s;
+
+% Link 2: joint -> end-effector
+yLink2 = yJoint + (yEnd - yJoint) * s;
+zLink2 = zJoint + (zEnd - zJoint) * s;
+
+yAll = [yLink1(:); yLink2(:)];
+zAll = [zLink1(:); zLink2(:)];
+
+insideMarginY = min(yAll - y_min, y_max - yAll);
+insideMarginZ = min(zAll - z_min, z_max - zAll);
+cineq = min(insideMarginY, insideMarginZ);
 end
