@@ -93,3 +93,154 @@ legend('Trajectory', 'Target 1', 'Target 2', 'Location', 'best');
 xlabel('y (m)');
 ylabel('z (m)');
 title('End-Effector Trajectory with Rectangular Constraint');
+
+%% Animate results (real-time videos)
+
+% Determine time axis limits for animation (span of the log)
+t_lim = [y_log.Time(1), y_log.Time(end)];
+
+% Gather all values for axis limit calculations (merge logs and refs)
+y_all = [y_log.Data; ye_ref_log.Data];
+z_all = [z_log.Data; ze_ref_log.Data];
+theta_all_deg = [theta1_log.Data; theta2_log.Data] * 180/pi;
+
+% Compute axis limits and padding for all animated signals
+y_min = min(y_all); y_max = max(y_all); y_pad = max(1e-6, 0.05*(y_max - y_min));
+z_min = min(z_all); z_max = max(z_all); z_pad = max(1e-6, 0.05*(z_max - z_min));
+theta_min = min(theta_all_deg); theta_max = max(theta_all_deg); theta_pad = max(1e-6, 0.05*(theta_max - theta_min));
+
+% Set axis limits for each subplot
+y_lim = [y_min - y_pad, y_max + y_pad];
+z_lim = [z_min - z_pad, z_max + z_pad];
+theta_lim = [theta_min - theta_pad, theta_max + theta_pad];
+
+% Axis limits for trajectory plot (include all targets and constraint rectangle)
+traj_y_all = [y_log.Data; ref1(1); ref2(1); rect_ycenter - rect_ly/2; rect_ycenter + rect_ly/2];
+traj_z_all = [z_log.Data; ref1(2); ref2(2); rect_zcenter - rect_lz/2; rect_zcenter + rect_lz/2];
+traj_y_min = min(traj_y_all); traj_y_max = max(traj_y_all); traj_y_pad = max(1e-6, 0.05*(traj_y_max - traj_y_min));
+traj_z_min = min(traj_z_all); traj_z_max = max(traj_z_all); traj_z_pad = max(1e-6, 0.05*(traj_z_max - traj_z_min));
+traj_y_lim = [traj_y_min - traj_y_pad, traj_y_max + traj_y_pad];
+traj_z_lim = [traj_z_min - traj_z_pad, traj_z_max + traj_z_pad];
+
+%--------------------%
+% Figure for animated time series (y, z on top, joint angles on bottom)
+fig_anim = figure('Units', 'normalized', 'OuterPosition', [0 0 1 1]);
+
+% (1,1) y position
+subplot(2,2,1)
+hold on;
+stairs(ye_ref_log.Time, ye_ref_log.Data, 'r--', 'LineWidth', 2); % reference trajectory
+y_line = plot(nan, nan, 'b-', 'LineWidth', 2);                  % animated actual y
+hold off;
+grid on;
+legend('y_{ref}', 'y', 'Location', 'bestoutside');
+xlabel('Time (s)');
+ylabel('y (m)');
+title('End-Effector y');
+xlim(t_lim);
+ylim(y_lim);
+
+% (1,2) z position
+subplot(2,2,2)
+hold on;
+stairs(ze_ref_log.Time, ze_ref_log.Data, 'r--', 'LineWidth', 2); % reference trajectory
+z_line = plot(nan, nan, 'b-', 'LineWidth', 2);                  % animated actual z
+hold off;
+grid on;
+legend('z_{ref}', 'z', 'Location', 'bestoutside');
+xlabel('Time (s)');
+ylabel('z (m)');
+title('End-Effector z');
+xlim(t_lim);
+ylim(z_lim);
+
+% (2,:) joint angles spanning full bottom row
+subplot(2,2,[3 4])
+hold on;
+theta1_line = plot(nan, nan, 'b-', 'LineWidth', 2);  % animated theta1
+theta2_line = plot(nan, nan, 'g-', 'LineWidth', 2);  % animated theta2
+hold off;
+grid on;
+legend('\theta_1', '\theta_2', 'Location', 'bestoutside');
+xlabel('Time (s)');
+ylabel('Angle (deg)');
+title('Joint Angles');
+xlim(t_lim);
+ylim(theta_lim);
+
+% Title for the animation window
+sgtitle('Robotic Arm MPC - Simulation in Simulink with Simscape Multibody (Animation)');
+
+%--------------------%
+% Figure for animated trajectory in y-z (end-effector path with constraint)
+fig_traj = figure('Units', 'normalized', 'OuterPosition', [0 0 1 1]);
+hold on;
+traj_line = plot(nan, nan, 'b-', 'LineWidth', 2);          % trajectory so far
+traj_point = plot(nan, nan, 'ko', 'LineWidth', 2);         % current end-effector position
+plot(ref1(1), ref1(2), 'ro', 'LineWidth', 2);              % Target 1
+plot(ref2(1), ref2(2), 'go', 'LineWidth', 2);              % Target 2
+rectangle('Position', [rect_ycenter - rect_ly/2, rect_zcenter - rect_lz/2, rect_ly, rect_lz], ...
+    'EdgeColor', [0.85 0.2 0.2], 'LineWidth', 1.5, 'LineStyle', '--');
+hold off;
+grid on;
+axis equal;
+legend('Trajectory', 'Current', 'Target 1', 'Target 2', 'Location', 'bestoutside');
+xlabel('y (m)');
+ylabel('z (m)');
+title('End-Effector Trajectory with Rectangular Constraint (Animation)');
+xlim(traj_y_lim);
+ylim(traj_z_lim);
+
+%--------------------%
+% Setup video writers for saving animations to files
+video1 = VideoWriter('results_constraint_animation.mp4', 'MPEG-4');
+video2 = VideoWriter('trajectory_constraint_animation.mp4', 'MPEG-4');
+
+video_fps = 30;
+% Match video duration to simulation duration
+sim_duration = y_log.Time(end) - y_log.Time(1);
+
+num_steps = round(sim_duration * video_fps);
+
+video1.FrameRate = video_fps;
+video2.FrameRate = video_fps;
+
+open(video1);
+open(video2);
+
+t_anim = linspace(y_log.Time(1), y_log.Time(end), num_steps);
+
+%--------------------%
+% Main animation loop: update plots for each timestep and record frames
+for k = 1:num_steps
+    tk = t_anim(k); % current time
+
+    % Find all samples up to the current time for each signal
+    y_idx = y_log.Time <= tk;
+    z_idx = z_log.Time <= tk;
+    t1_idx = theta1_log.Time <= tk;
+    t2_idx = theta2_log.Time <= tk;
+
+    % Update animated lines for each subplot with data up to current time
+    set(y_line, 'XData', y_log.Time(y_idx), 'YData', y_log.Data(y_idx));
+    set(z_line, 'XData', z_log.Time(z_idx), 'YData', z_log.Data(z_idx));
+
+    set(theta1_line, 'XData', theta1_log.Time(t1_idx), 'YData', theta1_log.Data(t1_idx) * 180/pi);
+    set(theta2_line, 'XData', theta2_log.Time(t2_idx), 'YData', theta2_log.Data(t2_idx) * 180/pi);
+
+    % Update the animated end-effector trajectory
+    set(traj_line, 'XData', y_log.Data(y_idx), 'YData', z_log.Data(z_idx));
+    % Update the point showing the current position on trajectory
+    if any(y_idx)
+        set(traj_point, 'XData', y_log.Data(find(y_idx, 1, 'last')), 'YData', z_log.Data(find(z_idx, 1, 'last')));
+    end
+
+    % Render the updates and save each frame to video files
+    drawnow;
+    writeVideo(video1, getframe(fig_anim));
+    writeVideo(video2, getframe(fig_traj));
+end
+
+% Close and finalize video writers
+close(video1);
+close(video2);
