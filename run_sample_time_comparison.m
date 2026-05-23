@@ -2,6 +2,7 @@
 % 1) init, init_mpc (builds nlobj and control.slx)
 % 2) Loop: set nlobj.Ts / horizons, sim('control'), store logsout signals
 % 3) 2x2 figure: y, z, joint angles, torques (three Ts overlaid)
+% 4) 2D end-effector trajectory (same colours)
 
 %% ----- Setup -----
 init;
@@ -87,7 +88,7 @@ for s = 1:length(results)
     r = results{s};
     plot(r.theta1.Time, r.theta1.Data * 180/pi, [colors{s} '-'], 'LineWidth', 2, ...
         'DisplayName', ['\theta_1 (' r.name ')']);
-    plot(r.theta2.Time, r.theta2.Data * 180/pi, [colors{s} '--'], 'LineWidth', 1.5, ...
+    plot(r.theta2.Time, r.theta2.Data * 180/pi, [colors{s} '-.'], 'LineWidth', 1.5, ...
         'DisplayName', ['\theta_2 (' r.name ')']);
 end
 hold off;
@@ -104,7 +105,7 @@ for s = 1:length(results)
     r = results{s};
     stairs(r.tau1.Time, r.tau1.Data, [colors{s} '-'], 'LineWidth', 2, ...
         'DisplayName', ['\tau_1 (' r.name ')']);
-    stairs(r.tau2.Time, r.tau2.Data, [colors{s} '--'], 'LineWidth', 1.5, ...
+    stairs(r.tau2.Time, r.tau2.Data, [colors{s} '-.'], 'LineWidth', 1.5, ...
         'DisplayName', ['\tau_2 (' r.name ')']);
 end
 hold off;
@@ -113,3 +114,26 @@ legend('Location', 'best');
 xlabel('Time (s)');
 ylabel('Torque (N*m)');
 title('Joint Torques');
+
+%% ----- 2D end-effector trajectory -----
+ref1 = [0.2, 0.3];
+ref2 = [0.2, 0.6];
+ref3 = [-0.2, 0.6];
+
+figure('Name', 'MPC Sample Time Comparison - Trajectory');
+hold on;
+for s = 1:length(results)
+    r = results{s};
+    plot(r.y.Data, r.z.Data, [colors{s} '-'], 'LineWidth', 2, ...
+        'DisplayName', r.name);
+end
+plot(ref1(1), ref1(2), 'ko', 'MarkerSize', 10, 'MarkerFaceColor', 'r', 'DisplayName', 'Target 1');
+plot(ref2(1), ref2(2), 'ko', 'MarkerSize', 10, 'MarkerFaceColor', 'g', 'DisplayName', 'Target 2');
+plot(ref3(1), ref3(2), 'ko', 'MarkerSize', 10, 'MarkerFaceColor', 'm', 'DisplayName', 'Target 3');
+hold off;
+grid on;
+axis equal;
+legend('Location', 'best');
+xlabel('y (m)');
+ylabel('z (m)');
+title('End-Effector Trajectory');
