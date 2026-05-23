@@ -229,6 +229,36 @@ Use this script to compare tracking and control effort between the full-state an
 
 ---
 
+## MPC Sample Time Comparison
+
+The script **`run_sample_time_comparison.m`** runs the Part 1 Simulink model **`control.slx`** under three NMPC sample times while keeping the prediction and control horizons fixed. It overlays the results so the effect of controller discretization on tracking and torques can be assessed on the same end-effector reference scenario.
+
+### What the script does
+
+1. **Setup**  
+   Runs `init` and `init_mpc` to build the workspace `nlobj` object and configure **`control.slx`**.
+
+2. **Configuration loop**  
+   For each sample time, updates `nlobj` and simulates **`control.slx`**:
+   - **Sample times**: 0.1 s, 0.05 s, 0.02 s  
+   - **Prediction horizon**: 20 (fixed)  
+   - **Control horizon**: 15 (fixed)
+
+3. **Logged signals**  
+   Stores `logsout` traces for $\theta_1$, $\theta_2$, $\omega_1$, $\omega_2$, end-effector $y$ and $z$, joint torques $\tau_1$ and $\tau_2$, and references $y_{\mathrm{ref}}$, $z_{\mathrm{ref}}$ for each run.
+
+4. **Comparison figures**  
+   - **Figure 1** (2×2): end-effector $y$ and $z$ vs reference; joint angles $\theta_1$, $\theta_2$; joint torques $\tau_1$, $\tau_2$ — three sample times overlaid (blue, green, cyan).  
+   - **Figure 2**: 2D end-effector trajectory in the $y$–$z$ plane for the three runs, with the three target waypoints $[0.2, 0.3]$, $[0.2, 0.6]$, and $[-0.2, 0.6]$ m overlaid.
+
+### Typical run
+
+1. Run `run_sample_time_comparison` from the repository folder in MATLAB.
+
+The reference trajectory and initial conditions match the **Simulation Scenario** in Part 1; only `nlobj.Ts` changes between runs. Use this study to compare how coarser vs finer MPC sampling affects end-effector tracking, joint motion, and control effort when the predictive horizon length in steps is held constant in time via fixed $P$ and $C$.
+
+---
+
 ## Author
 This project is developed by Simone Bertoni. Learn more about my work on my personal website - [Simone Bertoni - Control Lab](https://simonebertonilab.com/).
 
